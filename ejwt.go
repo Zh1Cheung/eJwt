@@ -44,26 +44,28 @@ func New(claims interface{}, secert []byte) (string, error) {
 	return fmt.Sprintf("%s.%s", jwt, base64.RawURLEncoding.EncodeToString(mac.Sum(nil))), nil
 }
 
-func ParseClaims(token string, claims interface{}) error {
-	claimsSplited := strings.Split(token, ".")[0]
+func ParseClaims(tokenStr string, claims interface{}) (*Token, error) {
+	tokenSplit := strings.Split(tokenStr, ".")
 
-	claimsDecoded, err := base64.RawURLEncoding.DecodeString(claimsSplited)
+	token := Token{}
+
+	HeaderDecoded, err := base64.RawURLEncoding.DecodeString(tokenSplit[0])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = json.Unmarshal(claimsDecoded, claims)
+	err = json.Unmarshal(HeaderDecoded, token.Header)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return &token, nil
 }
 
 // test
-func Verify(token string, secret []byte) bool {
-	tokenSplited := strings.Split(token, ".")
+func (t *Token) Verify(tokenStr string, secret []byte) bool {
+	token := strings.Split(tokenStr, ".")
 	mac := hmac.New(sha256.New, secret)
-	mac.Write([]byte(tokenSplited[0]))
-	return hmac.Equal([]byte(tokenSplited[1]), mac.Sum(nil))
-
+	mac.Write([]byte(token[0]))
+	return hmac.Equal([]byte(token[1]), mac.Sum(nil))
 }

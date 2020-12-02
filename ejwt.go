@@ -54,7 +54,7 @@ func ParseClaims(tokenStr string, claims interface{}) (*Token, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(HeaderDecoded, token.Header)
+	err = json.Unmarshal(HeaderDecoded, &token.Header)
 	if err != nil {
 		return nil, err
 	}

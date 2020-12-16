@@ -1,16 +1,49 @@
-package eJwt
+package ejwt
 
-import "testing"
+import (
+	"testing"
+)
 
-func TestClaims_Generate(t *testing.T) {
+var secretKey = []byte("whats up yall")
 
-	Claims := New()
-	Claims.AddClaim("hel", "wor")
-	jwt, err := Claims.Generate([]byte("hi"))
+func TestGenerate(t *testing.T) {
+	claims := New()
+	claims.Add("hello", "world")
+	jwt, err := claims.Generate(secretKey)
 	if err != nil {
 		t.Error(err)
 	}
 	if jwt == "" {
 		t.Error("jwt is empty")
+	}
+}
+
+func TestParseClaims(t *testing.T) {
+	claims := New()
+	claims.Add("hello", "world")
+	jwt, _ := claims.Generate(secretKey)
+
+	newClaims, err := ParseClaims(jwt)
+	if err != nil {
+		t.Error("error parsing claims")
+	}
+	if !newClaims.Has("hello") || newClaims.GetStr("hello") != "world" {
+		t.Error("error getting claims hello from parsed claims")
+	}
+}
+
+func TestVerify(t *testing.T) {
+	claims := New()
+	claims.Add("hello", "world")
+	jwt, _ := claims.Generate(secretKey)
+
+	verified := Verify(jwt, secretKey)
+	if !verified {
+		t.Error("verification failed")
+	}
+
+	verified = Verify(jwt, []byte("Bad secret"))
+	if verified {
+		t.Error("verification should have failed")
 	}
 }
